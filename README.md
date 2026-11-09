@@ -1,6 +1,13 @@
 # ORCA – Marine Ecosystem Intelligence
 > **"ORCA – From Ocean Data to Informed Action."**
 
+[![ORCA CI](https://github.com/Harikachopperla/orca/actions/workflows/ci.yml/badge.svg)](https://github.com/Harikachopperla/orca/actions)
+![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB.svg?logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.1-000000.svg?logo=flask&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-ML%20Ensemble-F7931E.svg?logo=scikit-learn&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+![Demo Scenario](https://img.shields.io/badge/Demo%20Scenario-31%C2%B0C%20%7C%2018%20NTU%20%7C%2035%20PSU-00f2fe)
+
 A professional, modern, responsive, AI-powered marine environmental intelligence platform that uses **6 collaborative AI agents** to monitor ocean conditions, detect environmental anomalies, analyse water quality and pollution indicators, safeguard marine biodiversity, and support human decision-making.
 
 ---
