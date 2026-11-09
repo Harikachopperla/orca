@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  orca-intelligence:
+    build: .
+    container_name: orca_marine_intelligence
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./orca.db:/app/orca.db
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+

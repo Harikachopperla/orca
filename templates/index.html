@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORCA – Marine Ecosystem Intelligence</title>
+    
+    <!-- Leaflet CSS for Interactive Ocean Map (Local with CDN fallback) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}" />
+    
+    <!-- Custom Deep Ocean Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Chart.js for Ocean Conditions & Pollution Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <!-- Leaflet JS (Local with CDN fallback) -->
+    <script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+    <script>
+        if (!window.L) {
+            document.write('<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>');
+        }
+    </script>
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="orca-sidebar">
+        <div class="sidebar-header">
+            <div class="orca-logo-badge">🐋</div>
+            <div class="brand-text">
+                <h1>ORCA</h1>
+                <p>Ecosystem Intelligence</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-title">Core Navigation</div>
+            <a class="nav-item active" data-tab="home">
+                <span class="icon">🏠</span>
+                <span>Home</span>
+            </a>
+            <a class="nav-item" data-tab="dashboard">
+                <span class="icon">📊</span>
+                <span>Main Dashboard</span>
+            </a>
+            <a class="nav-item" data-tab="ocean-map">
+                <span class="icon">🗺️</span>
+                <span>Ocean Map</span>
+            </a>
+
+            <div class="nav-section-title">Environmental Modules</div>
+            <a class="nav-item" data-tab="pollution">
+                <span class="icon">🧪</span>
+                <span>Pollution Monitor</span>
+            </a>
+            <a class="nav-item" data-tab="conditions">
+                <span class="icon">🌊</span>
+                <span>Ocean Conditions</span>
+            </a>
+            <a class="nav-item" data-tab="marine-life">
+                <span class="icon">🐬</span>
+                <span>Marine Life</span>
+            </a>
+
+            <div class="nav-section-title">Multi-Agent Intelligence</div>
+            <a class="nav-item" data-tab="ai-agents">
+                <span class="icon">🤖</span>
+                <span>AI Agents (6 Agents)</span>
+            </a>
+            <a class="nav-item" data-tab="alerts">
+                <span class="icon">🔔</span>
+                <span>Alerts & Actions</span>
+                <span class="nav-badge" id="alertNavBadge">1</span>
+            </a>
+            <a class="nav-item" data-tab="reports">
+                <span class="icon">📑</span>
+                <span>Reports & Analytics</span>
+            </a>
+
+            <div class="nav-section-title">Platform & Ethics</div>
+            <a class="nav-item" data-tab="about">
+                <span class="icon">ℹ️</span>
+                <span>About ORCA</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="agent-status-mini">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="pulse-indicator"></span>
+                    <span style="font-size: 11.5px; color: #fff; font-weight: 600;">6 Agents Active</span>
+                </div>
+                <span style="font-size: 10.5px; color: var(--cyan-primary);">Consensus V1</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN APP WRAPPER -->
+    <main class="orca-main">
+        <!-- TOPBAR -->
+        <header class="orca-topbar">
+            <div class="topbar-left">
+                <h2 class="page-title" id="topbarTitle">Home – Executive Overview</h2>
+                <div class="data-disclaimer-pill">
+                    <span>⚠️</span>
+                    <span>Illustrative Sample Data • Requires Human Verification</span>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <div class="live-stream-badge stream-active" id="liveStreamBadge" title="Real-time telemetry stream simulator">
+                    <span class="stream-pulse"></span>
+                    <span style="font-size: 11.5px; font-weight: 600; color: #34d399;" id="liveStreamText">LIVE TELEMETRY: ACTIVE</span>
+                </div>
+                <button class="btn-demo-trigger" id="btnTopbarDemo" title="Run demonstration scenario: 31°C Temp, 18 NTU Turbidity, 35 PSU Salinity">
+                    <span>⚡</span>
+                    <span>Run Demo Scenario</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTENT VIEWS -->
+        <div class="content-wrapper">
+
+            <!-- 1. HOME PAGE -->
+            <section id="view-home" class="tab-view active">
+                <div class="hero-container">
+                    <div class="hero-tag">🌊 Next-Gen Autonomous Ocean Intelligence</div>
+                    <h1 class="hero-title">ORCA – From Ocean Data to Informed Action</h1>
+                    <p class="hero-subtitle">
+                        A collaborative multi-agent platform designed for marine researchers, fisheries departments, environmental organisations, and coastal authorities to monitor changing ocean conditions, detect environmental anomalies, and safeguard marine biodiversity.
+                    </p>
+                    <div class="hero-cta-group">
+                        <button class="btn btn-primary" onclick="switchTab('dashboard')" style="padding: 12px 28px; font-size: 14px;">
+                            Launch Dashboard →
+                        </button>
+                        <button class="btn btn-secondary" id="btnHeroDemo" style="padding: 12px 24px; font-size: 14px;">
+                            Run Anomaly Demonstration
+                        </button>
+                    </div>
+
+                    <!-- Highlights Grid -->
+                    <div class="feature-cards-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon-circle">🤖</div>
+                            <h3 style="font-size: 16px; color: #fff; margin-bottom: 8px;">6 Collaborative AI Agents</h3>
+                            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+                                Specialized agents for Pollution, Ocean Conditions, Marine Life, Anomaly Detection, Decision Support, and Alert Reporting communicating via structured JSON.
+                            </p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon-circle">🧠</div>
+                            <h3 style="font-size: 16px; color: #fff; margin-bottom: 8px;">ML Outlier Detection</h3>
+                            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+                                Scikit-Learn IsolationForest combined with multivariate Z-scoring calibrated against historical station baselines to flag unusual environmental events.
+                            </p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon-circle">🐬</div>
+                            <h3 style="font-size: 16px; color: #fff; margin-bottom: 8px;">Biodiversity & Reef Health</h3>
+                            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+                                Tracks endangered species, degree heating week risks, coral bleaching, seagrass light attenuation, and pelagic fish hypoxia envelopes.
+                            </p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon-circle">⚖️</div>
+                            <h3 style="font-size: 16px; color: #fff; margin-bottom: 8px;">Human-in-the-Loop Protocol</h3>
+                            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+                                Adheres to strict scientific reliability standards: every alert requires human oceanographer verification before field or enforcement action.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. MAIN DASHBOARD -->
+            <section id="view-dashboard" class="tab-view">
+                <!-- Summary Metrics -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📍</div>
+                        <div class="stat-info">
+                            <h4>Monitored Stations</h4>
+                            <div class="stat-value" id="metricStations">8</div>
+                            <div class="stat-subtext">Active coastal & deep arrays</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔔</div>
+                        <div class="stat-info">
+                            <h4>Active Alerts</h4>
+                            <div class="stat-value" id="metricAlerts" style="color: #fbbf24;">1</div>
+                            <div class="stat-subtext">Needs human verification</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-info">
+                            <h4>Historical Readings</h4>
+                            <div class="stat-value" id="metricReadings">490+</div>
+                            <div class="stat-subtext">Time-series data points</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🤖</div>
+                        <div class="stat-info">
+                            <h4>AI Agents Status</h4>
+                            <div class="stat-value" id="metricAgents" style="color: #34d399;">6/6 Active</div>
+                            <div class="stat-subtext">Full consensus online</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selected Station Quick Overview -->
+                <div class="orca-card" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span style="font-size: 13px; font-weight: 600; color: var(--cyan-primary);">Station Inspector</span>
+                        <select class="station-selector" style="background: #040f21; color: #fff; border: 1px solid var(--border-accent); padding: 6px 12px; border-radius: 6px; font-size: 12.5px;"></select>
+                    </div>
+                    <div id="selectedStationCard"></div>
+                </div>
+
+                <!-- Network Overview Table -->
+                <div class="orca-card">
+                    <div class="orca-card-header">
+                        <div class="orca-card-title">
+                            <span>🌊</span> Network Telemetry & Anomaly Status
+                        </div>
+                        <button class="btn btn-secondary" onclick="loadInitialData()" style="padding: 4px 10px; font-size: 12px;">
+                            Refresh Telemetry
+                        </button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="orca-table">
+                            <thead>
+                                <tr>
+                                    <th>Station ID</th>
+                                    <th>Name & Region</th>
+                                    <th>Temperature (SST)</th>
+                                    <th>Turbidity (NTU)</th>
+                                    <th>Salinity (PSU)</th>
+                                    <th>Dissolved O₂</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stationsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. OCEAN MAP -->
+            <section id="view-ocean-map" class="tab-view">
+                <div class="orca-card" style="margin-bottom: 24px;">
+                    <div class="orca-card-header">
+                        <div>
+                            <h3 style="font-size: 16px; color: #fff;">Interactive Ocean Monitoring Network</h3>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                                Global moored buoys, coastal observatories, and reef monitoring nodes.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="btn btn-secondary btn-map-layer active" data-layer="dark" onclick="switchMapBasemap('dark')" style="padding: 4px 10px; font-size: 11px;">🗺️ Dark Nautical</button>
+                            <button class="btn btn-secondary btn-map-layer" data-layer="satellite" onclick="switchMapBasemap('satellite')" style="padding: 4px 10px; font-size: 11px;">🛰️ Satellite</button>
+                            <button class="btn btn-secondary btn-map-layer" data-layer="ocean" onclick="switchMapBasemap('ocean')" style="padding: 4px 10px; font-size: 11px;">⚓ Ocean Base</button>
+                            <button class="btn btn-secondary btn-map-layer" data-layer="osm" onclick="switchMapBasemap('osm')" style="padding: 4px 10px; font-size: 11px;">🌍 Standard OSM</button>
+                            <button class="btn btn-secondary" onclick="filterMapStations('all')" style="padding: 4px 10px; font-size: 11px;">All Buoys</button>
+                            <button class="btn btn-secondary" onclick="filterMapStations('alerts')" style="padding: 4px 10px; font-size: 11px; color: #fbbf24;">Needs Verification</button>
+                            <button class="btn btn-primary" id="btnTogglePlumeCone" onclick="togglePlumeDispersionCone()" style="padding: 4px 10px; font-size: 11px;">
+                                🌊 Plume Drift Cone
+                            </button>
+                        </div>
+                    </div>
+                    <div id="oceanMap"></div>
+                    <div style="margin-top: 14px; font-size: 12px; color: var(--text-dim); display: flex; justify-content: space-between;">
+                        <span>Click any buoy marker to inspect live telemetry and trigger detailed analysis.</span>
+                        <span>Projection: WGS84 CartoDB Dark Matter Feed • Real-Time Overlay</span>
+                    </div>
+                </div>
+
+                <!-- INNOVATIVE FEATURE: PLUME DISPERSION & DRIFT FORECASTER -->
+                <div class="orca-card" id="plumeForecastPanel" style="display: block;">
+                    <div class="orca-card-header">
+                        <div class="orca-card-title">
+                            <span>🛰️</span> Real-Time Particulate Plume Drift & Dispersion Forecast
+                        </div>
+                        <span class="badge badge-verification">Hydrodynamic Projection</span>
+                    </div>
+                    <div class="grid-3" style="margin-bottom: 12px;">
+                        <div style="background: rgba(4,15,33,0.7); padding: 14px; border-radius: 8px;">
+                            <span style="font-size: 11px; color: var(--text-dim);">Drift Velocity & Vector</span>
+                            <div style="font-size: 16px; font-weight: 700; color: #fff; margin-top: 4px;">0.72 m/s • 045° (NE)</div>
+                            <span style="font-size: 11px; color: var(--cyan-primary);">Driven by Palk Strait Current</span>
+                        </div>
+                        <div style="background: rgba(4,15,33,0.7); padding: 14px; border-radius: 8px;">
+                            <span style="font-size: 11px; color: var(--text-dim);">6-Hour Projected Spread</span>
+                            <div style="font-size: 16px; font-weight: 700; color: #fbbf24; margin-top: 4px;">15.5 km Reach</div>
+                            <span style="font-size: 11px; color: var(--text-dim);">Dispersion Area: ~42 km²</span>
+                        </div>
+                        <div style="background: rgba(4,15,33,0.7); padding: 14px; border-radius: 8px;">
+                            <span style="font-size: 11px; color: var(--text-dim);">Downstream Sensitive Habitats</span>
+                            <div style="font-size: 16px; font-weight: 700; color: #f87171; margin-top: 4px;">Palk Bay Seagrass Beds</div>
+                            <span style="font-size: 11px; color: var(--text-dim);">Grazing zone of Dugong dugon</span>
+                        </div>
+                    </div>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-top: 8px;">
+                        <strong>Agent Recommendation:</strong> Coastal circulation model projects sediment plume will traverse Mandapam shallows within 8 hours. Automated advisory sent to local fisheries management to monitor benthic oyster beds.
+                    </p>
+                </div>
+            </section>
+
+            <!-- 4. POLLUTION MONITORING -->
+            <section id="view-pollution" class="tab-view">
+                <div class="orca-card" style="margin-bottom: 24px;">
+                    <div class="orca-card-header">
+                        <div>
+                            <h3 style="font-size: 16px; color: #fff;">Water Quality & Turbidity Anomaly Monitor</h3>
+                            <p style="font-size: 12px; color: var(--text-muted);">
+                                Optical nephelometry, particulate scattering, and biochemical oxygen demand indicators.
+                            </p>
+                        </div>
+                        <select class="station-selector" style="background: #040f21; color: #fff; border: 1px solid var(--border-accent); padding: 6px 12px; border-radius: 6px; font-size: 12.5px;"></select>
+                    </div>
+                    <div class="grid-equal">
+                        <div style="height: 320px; position: relative;">
+                            <canvas id="chartTurbidity"></canvas>
+                        </div>
+                        <div style="height: 320px; position: relative;">
+                            <canvas id="chartOxygen"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-equal">
+                    <div class="orca-card">
+                        <h4 style="font-size: 15px; color: #fff; margin-bottom: 12px;">🧪 Water Quality Indicators Explained</h4>
+                        <div style="font-size: 12.5px; color: var(--text-muted); line-height: 1.6;">
+                            <p><strong>Turbidity (NTU):</strong> Measures optical backscatter from suspended particulates. High values (> 10 NTU) in coastal reefs indicate river runoff, dredging, or potential industrial sediment discharge.</p>
+                            <p style="margin-top: 8px;"><strong>Dissolved Oxygen (mg/L):</strong> Critical indicator for aquatic respiration. Depletions below 5.0 mg/L signal hypoxia or high organic decomposition.</p>
+                            <p style="margin-top: 8px;"><strong>pH Balance:</strong> Baseline ocean pH is ~8.1. Ocean acidification or localized industrial effluents alter carbonic equilibria.</p>
+                        </div>
+                    </div>
+                    <div class="orca-card">
+                        <h4 style="font-size: 15px; color: #fbbf24; margin-bottom: 12px;">⚠️ Scientific Caution & Protocol</h4>
+                        <div style="font-size: 12.5px; color: var(--text-muted); line-height: 1.6;">
+                            <p>An elevated turbidity or DO spike is an observational indicator, NOT legal proof of pollution. High turbidity frequently occurs naturally from tidal scouring, high waves, or monsoon precipitation.</p>
+                            <p style="margin-top: 8px; color: #34d399;"><strong>ORCA Mandate:</strong> Field physical sampling, satellite imagery cross-checks, and sensor wiper recalibrations are recommended before assigning liability or issuing public closures.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. OCEAN CONDITIONS MONITORING -->
+            <section id="view-conditions" class="tab-view">
+                <div class="orca-card" style="margin-bottom: 24px;">
+                    <div class="orca-card-header">
+                        <div>
+                            <h3 style="font-size: 16px; color: #fff;">Physical Hydrography & Thermohaline Tracking</h3>
+                            <p style="font-size: 12px; color: var(--text-muted);">
+                                Sea Surface Temperature (SST), practical salinity units (PSU), and physical current velocity.
+                            </p>
+                        </div>
+                        <select class="station-selector" style="background: #040f21; color: #fff; border: 1px solid var(--border-accent); padding: 6px 12px; border-radius: 6px; font-size: 12.5px;"></select>
+                    </div>
+                    <div class="grid-equal">
+                        <div style="height: 320px; position: relative;">
+                            <canvas id="chartTemp"></canvas>
+                        </div>
+                        <div style="height: 320px; position: relative;">
+                            <canvas id="chartSalinity"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INNOVATIVE FEATURE: DUAL-STATION OCEANOGRAPHIC COMPARATOR -->
+                <div class="orca-card" style="margin-bottom: 24px;">
+                    <div class="orca-card-header">
+                        <div>
+                            <div class="orca-card-title">
+                                <span>⚖️</span> Multi-Station Oceanographic Comparator
+                            </div>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                                Compare thermohaline profiles and environmental divergence between distinct marine biomes.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <select id="compareStationA" style="background: #040f21; color: var(--cyan-primary); border: 1px solid var(--border-accent); padding: 6px 10px; border-radius: 6px; font-size: 12px;"></select>
+                            <span style="font-size: 12px; color: var(--text-dim); font-weight: 700;">VS</span>
+                            <select id="compareStationB" style="background: #040f21; color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 6px 10px; border-radius: 6px; font-size: 12px;"></select>
+                            <button class="btn btn-primary" onclick="triggerStationComparison()" style="padding: 6px 14px; font-size: 12px;">Compare Biomes</button>
+                        </div>
+                    </div>
+                    
+                    <div style="height: 280px; position: relative; margin-bottom: 18px;">
+                        <canvas id="chartComparison"></canvas>
+                    </div>
+
+                    <div id="comparisonMetricsTable" style="background: rgba(3,10,22,0.6); padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle);"></div>
+                </div>
+            </section>
+
+            <!-- 6. MARINE LIFE MONITORING -->
+            <section id="view-marine-life" class="tab-view">
+                <div class="orca-card" style="margin-bottom: 20px;">
+                    <div class="orca-card-header">
+                        <div>
+                            <h3 style="font-size: 16px; color: #fff;">Marine Biodiversity & Habitat Integrity</h3>
+                            <p style="font-size: 12px; color: var(--text-muted);">
+                                Tracked vulnerable taxa, coral thermal stress indices, and benthic ecosystem observations.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="agents-grid" id="marineSpeciesContainer"></div>
+                </div>
+
+                <!-- INNOVATIVE FEATURE: BIOACOUSTICS & HYDROPHONE SOUNDSCAPE -->
+                <div class="hydrophone-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="soundwave-anim-bar">
+                                    <span></span><span></span><span></span><span></span>
+                                </div>
+                                <h3 style="font-size: 16px; color: #fff;">Deep Ocean Hydrophone Soundscape & Bioacoustics (PAM)</h3>
+                            </div>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                                Passive Acoustic Monitoring of marine mammal vocalizations and ambient anthropomorphic vessel noise.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-secondary" id="btnToggleAudio" style="font-size: 12px; border-color: var(--cyan-primary);">
+                                🔊 Synthesize Hydrophone Sound (Web Audio)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Spectrogram Canvas -->
+                    <div style="position: relative; margin-bottom: 16px;">
+                        <canvas id="spectrogramCanvas" class="spectrum-canvas"></canvas>
+                        <div style="position: absolute; bottom: 8px; left: 12px; font-size: 10.5px; color: var(--cyan-primary); font-family: monospace;">
+                            HYDROPHONE FREQUENCY BAND: 20 Hz - 24.0 kHz • AMBIENT: 88.4 dB re 1µPa
+                        </div>
+                    </div>
+
+                    <!-- Acoustic Classifications Grid -->
+                    <div class="grid-3" style="margin-bottom: 0;">
+                        <div class="acoustic-detection-pill">
+                            <div>
+                                <strong style="color: #00f2fe;">Dugong dugon (Sea Cow)</strong>
+                                <div style="font-size: 10.5px; color: var(--text-dim);">Chirp-squeak vocalization • 3.2 kHz</div>
+                            </div>
+                            <span class="badge badge-normal" style="font-size: 10px;">SNR +14dB</span>
+                        </div>
+                        <div class="acoustic-detection-pill">
+                            <div>
+                                <strong style="color: #38bdf8;">Megaptera novaeangliae (Humpback)</strong>
+                                <div style="font-size: 10.5px; color: var(--text-dim);">Low-freq migratory call • 180 Hz</div>
+                            </div>
+                            <span class="badge badge-normal" style="font-size: 10px;">SNR +22dB</span>
+                        </div>
+                        <div class="acoustic-detection-pill">
+                            <div>
+                                <strong style="color: #fbbf24;">Commercial Vessel Cavitation</strong>
+                                <div style="font-size: 10.5px; color: var(--text-dim);">Propeller blade noise • 45 Hz - 1.2 kHz</div>
+                            </div>
+                            <span class="badge badge-verification" style="font-size: 10px;">Moderate</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. AI AGENTS MONITORING & INTERACTIVE PIPELINE -->
+            <section id="view-ai-agents" class="tab-view">
+                <!-- Interactive Demonstration Simulator -->
+                <div class="simulator-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <span class="badge badge-cyan" style="margin-bottom: 6px;">Collaborative Deliberation Console</span>
+                            <h3 style="font-size: 18px; color: #fff;">Multi-Agent Pipeline Simulator</h3>
+                            <p style="font-size: 12px; color: var(--text-muted);">
+                                Test the 6 AI agents with sample coastal observations or execute the demonstration scenario.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-secondary" id="btnSimDemoPreset" style="background: rgba(0, 242, 254, 0.15); border-color: var(--cyan-primary);">
+                                ⚡ Load Demo Scenario (31°C / 18 NTU / 35 PSU)
+                            </button>
+                            <button class="btn btn-primary" id="btnRunCustomSim">
+                                Run Custom Telemetry →
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sliders -->
+                    <div class="sim-slider-group">
+                        <div class="sim-slider-item">
+                            <label>Station <span class="val" id="simStationVal">STN-001</span></label>
+                            <select id="simStationSelect" class="station-selector" style="width: 100%; background: #040f21; color: #fff; border: 1px solid var(--border-accent); padding: 6px; border-radius: 6px;"></select>
+                        </div>
+                        <div class="sim-slider-item">
+                            <label>Temperature: <span class="val"><span id="simTempVal">31.0</span>°C</span></label>
+                            <input type="range" id="simTemp" min="10" max="36" step="0.5" value="31.0">
+                        </div>
+                        <div class="sim-slider-item">
+                            <label>Turbidity: <span class="val"><span id="simTurbVal">18.0</span> NTU</span></label>
+                            <input type="range" id="simTurb" min="0.5" max="40" step="0.5" value="18.0">
+                        </div>
+                        <div class="sim-slider-item">
+                            <label>Salinity: <span class="val"><span id="simSalVal">35.0</span> PSU</span></label>
+                            <input type="range" id="simSal" min="25" max="42" step="0.5" value="35.0">
+                        </div>
+                        <div class="sim-slider-item">
+                            <label>Dissolved O₂: <span class="val"><span id="simDOVal">4.3</span> mg/L</span></label>
+                            <input type="range" id="simDO" min="2.0" max="10.0" step="0.1" value="4.3">
+                        </div>
+                    </div>
+
+                    <!-- Pipeline Execution Display -->
+                    <div style="background: rgba(3, 10, 22, 0.75); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 18px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <span style="font-size: 13px; font-weight: 600; color: #fff;" id="pipelineStatusText">
+                                Ready to deliberate. Click 'Load Demo Scenario' or 'Run Custom Telemetry'.
+                            </span>
+                            <button class="btn btn-secondary" onclick="toggleJsonInspector()" style="padding: 4px 10px; font-size: 11px;">
+                                { } View Structured JSON Payload
+                            </button>
+                        </div>
+
+                        <div id="pipelineExecutionDisplay">
+                            <div style="text-align: center; padding: 20px; color: var(--text-dim); font-size: 13px;">
+                                No recent pipeline run. Trigger above to see sequential deliberations.
+                            </div>
+                        </div>
+
+                        <!-- JSON Inspector Collapsible -->
+                        <div id="jsonInspectorBox" style="display: none; margin-top: 16px; background: #010710; padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle); max-height: 350px; overflow-y: auto;">
+                            <pre id="rawJsonPayload" style="font-size: 11.5px; color: #38bdf8; font-family: Consolas, monospace;"></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6 Agents Architecture Roster -->
+                <div class="orca-card" style="margin-top: 24px; margin-bottom: 24px; background: rgba(2, 8, 18, 0.85); border: 1px solid var(--border-subtle);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="stream-pulse"></span>
+                            <span style="font-size: 13px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.8px;">
+                                ⚡ Collaborative Multi-Agent Live Audit Stream
+                            </span>
+                        </div>
+                        <span class="badge badge-normal" style="font-size: 10px;">● 6 AGENTS DELIBERATING</span>
+                    </div>
+                    <div id="liveAgentTerminal" style="font-family: Consolas, monospace; font-size: 11.5px; background: #01060e; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); height: 130px; overflow-y: hidden; display: flex; flex-direction: column; gap: 6px;">
+                        <!-- Streaming logs populated in real time -->
+                    </div>
+                </div>
+
+                <div class="orca-card-header" style="margin-top: 28px;">
+                    <h3 style="font-size: 16px; color: #fff;">Specialized AI Agents Overview</h3>
+                </div>
+                <div class="agents-grid" id="agentsGridContainer"></div>
+            </section>
+
+            <!-- 8. ALERTS & NOTIFICATIONS -->
+            <section id="view-alerts" class="tab-view">
+                <div class="orca-card" style="margin-bottom: 20px;">
+                    <div class="orca-card-header">
+                        <div>
+                            <h3 style="font-size: 16px; color: #fff;">Environmental Anomaly Alerts & Verification Queue</h3>
+                            <p style="font-size: 12px; color: var(--text-muted);">
+                                Multi-agent consensus warnings requiring human oceanographer evaluation.
+                            </p>
+                        </div>
+                        <button class="btn btn-primary" onclick="switchTab('ai-agents')">
+                            Simulate Anomaly
+                        </button>
+                    </div>
+                    <div id="alertsListContainer"></div>
+                </div>
+            </section>
+
+            <!-- 9. REPORTS & ANALYTICS -->
+            <section id="view-reports" class="tab-view">
+                <div class="orca-card" style="margin-bottom: 24px;">
+                    <div class="orca-card-header">
+                        <div>
+                            <h3 style="font-size: 16px; color: #fff;">Environmental Intelligence Reporting</h3>
+                            <p style="font-size: 12px; color: var(--text-muted);">
+                                Export synthesized monitoring reports, multi-agent findings, and sensor audits.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary" onclick="openOfficialBriefingModal()" style="font-size: 12px; background: linear-gradient(135deg, #00f2fe 0%, #1e60ff 100%);">
+                                📜 Official Audit Briefing
+                            </button>
+                            <button class="btn btn-secondary" onclick="window.print()" style="font-size: 12px;">
+                                🖨️ Print View
+                            </button>
+                            <button class="btn btn-secondary" onclick="downloadReportCSV()" style="font-size: 12px;">
+                                ⬇ Export CSV Dataset
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(3,10,22,0.6); padding: 18px; border-radius: 10px; border: 1px solid var(--border-subtle); line-height: 1.6; font-size: 13px;">
+                        <h4 style="color: var(--cyan-primary); margin-bottom: 8px;">Executive Summary – Operational Ocean Status</h4>
+                        <p style="color: var(--text-muted); margin-bottom: 12px;">
+                            This automated intelligence briefing was compiled by the ORCA Multi-Agent System from historical and sample telemetry across 8 marine protected zones. All environmental baselines reflect seasonal averages.
+                        </p>
+                        <div class="grid-3" style="margin-bottom: 16px;">
+                            <div style="background: rgba(4,15,33,0.8); padding: 12px; border-radius: 8px;">
+                                <span style="font-size: 11px; color: var(--text-dim);">Network Health</span>
+                                <div style="font-size: 18px; font-weight: 700; color: #34d399;">OPTIMAL</div>
+                            </div>
+                            <div style="background: rgba(4,15,33,0.8); padding: 12px; border-radius: 8px;">
+                                <span style="font-size: 11px; color: var(--text-dim);">Open Investigation Flags</span>
+                                <div style="font-size: 18px; font-weight: 700; color: #fbbf24;">1 Pending</div>
+                            </div>
+                            <div style="background: rgba(4,15,33,0.8); padding: 12px; border-radius: 8px;">
+                                <span style="font-size: 11px; color: var(--text-dim);">Data Feeds Integrated</span>
+                                <div style="font-size: 18px; font-weight: 700; color: #00f2fe;">4 Public Sources</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 11.5px; color: var(--text-dim);">
+                            Notice: Exported files include station coordinates, raw measurements, calibrated anomaly scores, and human verification notes.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 10. ABOUT ORCA -->
+            <section id="view-about" class="tab-view">
+                <div class="orca-card" style="margin-bottom: 24px;">
+                    <h3 style="font-size: 20px; color: #fff; margin-bottom: 12px;">About ORCA – Marine Ecosystem Intelligence</h3>
+                    <p style="font-size: 14px; color: var(--cyan-primary); font-weight: 600; margin-bottom: 16px;">
+                        "ORCA – From Ocean Data to Informed Action."
+                    </p>
+                    <div style="font-size: 13.5px; color: var(--text-muted); line-height: 1.7;">
+                        <p>
+                            Marine ecosystems are undergoing unprecedented transformations due to plastic accumulation, oil and chemical runoffs, rising sea surface temperatures, ocean acidification, and localized hypoxia. Traditional monitoring workflows suffer from siloed datasets and slow manual interpretation.
+                        </p>
+                        <p style="margin-top: 12px;">
+                            ORCA bridges this gap by unifying oceanographic telemetry, satellite observations, and marine biodiversity logs into an intelligent, collaborative multi-agent architecture.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid-equal">
+                    <div class="orca-card">
+                        <h4 style="font-size: 15px; color: #fff; margin-bottom: 12px;">🌐 Potential Public Data Integrations</h4>
+                        <ul style="padding-left: 20px; font-size: 13px; color: var(--text-muted); line-height: 1.8;">
+                            <li><strong>Copernicus Marine Service:</strong> In-situ physical observation gridded models, Sea Surface Temperature (OSTIA), and chlorophyll products.</li>
+                            <li><strong>NOAA National Data Buoy Center (NDBC):</strong> Real-time meteorological and oceanographic buoy measurements.</li>
+                            <li><strong>NASA Earthdata (MODIS & VIIRS):</strong> Ocean color, sea surface temperature, and particulate backscattering.</li>
+                            <li><strong>INCOIS (Indian National Centre for Ocean Information Services):</strong> Coastal automated weather stations and ocean moored buoy array.</li>
+                        </ul>
+                    </div>
+
+                    <div class="orca-card">
+                        <h4 style="font-size: 15px; color: #fbbf24; margin-bottom: 12px;">🛡️ Safety, Reliability & Ethics Disclaimer</h4>
+                        <div style="font-size: 13px; color: var(--text-muted); line-height: 1.7;">
+                            <p>
+                                <strong>Human-in-the-Loop Imperative:</strong> ORCA is strictly engineered to augment and support human experts—marine researchers, port authorities, and environmental scientists—not replace them.
+                            </p>
+                            <p style="margin-top: 8px;">
+                                <strong>Illustrative Sample Data:</strong> The observations featured in this prototype are clearly labelled sample or historical datasets. Unusual sensor readings warrant rapid scientific validation, not definitive assumptions of contamination.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- HUMAN-IN-THE-LOOP VERIFICATION MODAL -->
+    <div class="orca-modal-overlay" id="verifyModal">
+        <div class="orca-modal">
+            <button class="modal-close" id="modalCloseBtn">&times;</button>
+            <h3 style="font-size: 18px; color: #fff; margin-bottom: 6px;" id="modalAlertTitle">Verify Alert</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 18px;">
+                Enter oceanographer field notes and designate operational status.
+            </p>
+
+            <form id="verifyForm">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px;">Operational Action / Verdict</label>
+                    <select id="verifyAction" style="width: 100%; background: #040f21; color: #fff; border: 1px solid var(--border-accent); padding: 10px; border-radius: 8px; font-size: 13px;">
+                        <option value="Verified by Human Expert">Verified by Human Expert (Confirm Investigation)</option>
+                        <option value="Acknowledged – Scheduled ASV Inspection">Acknowledged – Scheduled ASV Sampling</option>
+                        <option value="Dismissed as Natural Upwelling / Sediment">Dismissed as Natural Tidal Scour / Upwelling</option>
+                        <option value="Sensor Recalibration Dispatched">Sensor Recalibration Dispatched (Optical Biofouling Check)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px;">Expert Scientific Assessment / Field Notes</label>
+                    <textarea id="verifyNotes" rows="4" style="width: 100%; background: #040f21; color: #fff; border: 1px solid var(--border-subtle); padding: 10px; border-radius: 8px; font-size: 13px; font-family: inherit;" placeholder="e.g. Conducted optical nephelometer wiper check; boat patrol dispatched for TSS measurement..."></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('verifyModal').classList.remove('active')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Record Verification</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- OFFICIAL ENVIRONMENTAL AUDIT BRIEFING MODAL -->
+    <div class="orca-modal-overlay" id="briefingModal">
+        <div class="orca-modal" style="max-width: 820px; background: #030c1a;">
+            <button class="modal-close" onclick="document.getElementById('briefingModal').classList.remove('active')">&times;</button>
+            
+            <div class="certificate-container" id="printableCertificate">
+                <div class="certificate-header">
+                    <div>
+                        <div class="certificate-title">
+                            <h2>ORCA • Ocean Intelligence Network</h2>
+                            <p>Global Marine Environmental Assessment & Multi-Agent Audit</p>
+                        </div>
+                    </div>
+                    <div class="certificate-classification">
+                        OFFICIAL BRIEFING // LEVEL-1 ADVISORY<br>
+                        <span style="font-size: 9.5px; opacity: 0.8;">DOC-REF: ORCA-2026-ENV-09</span>
+                    </div>
+                </div>
+
+                <div class="cert-meta-grid">
+                    <div class="cert-meta-item">
+                        <span>Report Date & Time</span>
+                        <strong id="certTimestamp">2026-11-08 23:00 UTC</strong>
+                    </div>
+                    <div class="cert-meta-item">
+                        <span>Network Coverage</span>
+                        <strong id="certStationsCount">8 Stations Global</strong>
+                    </div>
+                    <div class="cert-meta-item">
+                        <span>Active AI Agents</span>
+                        <strong style="color: #34d399;">6/6 Consensus Reached</strong>
+                    </div>
+                    <div class="cert-meta-item">
+                        <span>Primary Concern</span>
+                        <strong style="color: #fbbf24;" id="certPrimaryConcern">Gulf of Mannar (STN-001)</strong>
+                    </div>
+                </div>
+
+                <h4 style="font-size: 13px; color: var(--cyan-primary); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px;">
+                    Multi-Agent Consensus Matrix
+                </h4>
+                <table class="consensus-matrix-table">
+                    <thead>
+                        <tr>
+                            <th>Specialized AI Agent</th>
+                            <th>Monitored Parameter</th>
+                            <th>Status / Findings</th>
+                            <th>Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody id="certAgentsTbody">
+                        <tr>
+                            <td>🧪 Pollution Detection Agent</td>
+                            <td>Turbidity (NTU), DO, Plumes</td>
+                            <td><span style="color: #f87171;">Elevated Suspended Solids Flagged (18 NTU)</span></td>
+                            <td>95.0%</td>
+                        </tr>
+                        <tr>
+                            <td>🌊 Ocean Conditions Agent</td>
+                            <td>SST, Salinity, Currents</td>
+                            <td><span style="color: #fbbf24;">Thermal Spike (+3.8°C above seasonal baseline)</span></td>
+                            <td>90.0%</td>
+                        </tr>
+                        <tr>
+                            <td>🐬 Marine Life Agent</td>
+                            <td>Coral, Seagrass, Fauna</td>
+                            <td>Critical thermal bleaching & PAR light attenuation</td>
+                            <td>88.0%</td>
+                        </tr>
+                        <tr>
+                            <td>🧠 Anomaly Detection Agent</td>
+                            <td>IsolationForest + Z-Score</td>
+                            <td>Multivariate outlier score: 0.835 [High Anomaly]</td>
+                            <td>91.2%</td>
+                        </tr>
+                        <tr>
+                            <td>⚖️ Decision Support Agent</td>
+                            <td>Verification Protocols</td>
+                            <td>HIGH PRIORITY: 5 field verification actions formulated</td>
+                            <td>92.0%</td>
+                        </tr>
+                        <tr>
+                            <td>📢 Alert & Reporting Agent</td>
+                            <td>Risk & Reporting</td>
+                            <td>Dispatched ALT-202611-D580 (Status: Needs Verification)</td>
+                            <td>94.5%</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div style="background: rgba(10, 28, 54, 0.4); padding: 14px; border-radius: 8px; border-left: 3px solid #fbbf24; margin-bottom: 20px; font-size: 11.5px; color: var(--text-muted); line-height: 1.5;">
+                    <strong style="color: #fbbf24;">HUMAN-IN-THE-LOOP SCIENTIFIC INTEGRITY CLAUSE:</strong>
+                    In accordance with ORCA Marine Operating Standards, abnormal telemetry constitutes an investigative advisory, not legal or biochemical proof of discharge. Autonomous Surface Vessel (ASV) bottle sampling and nephelometer biofouling calibration are scheduled before final regulatory determinations.
+                </div>
+
+                <div class="cert-signatures">
+                    <div>
+                        <div class="signature-line"></div>
+                        <div style="font-size: 11.5px; font-weight: 700; color: #fff;">Dr. Elena Rostova, PhD</div>
+                        <div style="font-size: 10px; color: var(--text-dim); text-transform: uppercase;">Chief Oceanographic Analyst • Coastal Surveillance Bureau</div>
+                    </div>
+                    <div>
+                        <div class="signature-line"></div>
+                        <div style="font-size: 11.5px; font-weight: 700; color: #fff;">Antigravity Multi-Agent Orchestrator (v2.4)</div>
+                        <div style="font-size: 10px; color: var(--text-dim); text-transform: uppercase;">Autonomous Intelligence Core • Marine Telemetry Network</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;" class="no-print">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('briefingModal').classList.remove('active')">Close</button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">🖨️ Print Certificate</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUTONOMOUS ASV / DRONE TASKING MODAL -->
+    <div class="orca-modal-overlay" id="asvModal">
+        <div class="orca-modal" style="max-width: 680px; background: #030d1d;">
+            <button class="modal-close" onclick="document.getElementById('asvModal').classList.remove('active')">&times;</button>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <span style="font-size: 22px;">🚁</span>
+                <div>
+                    <h3 style="font-size: 18px; color: #fff;" id="asvModalTitle">Autonomous Surface Vessel (ASV) Mission Dispatch</h3>
+                    <p style="font-size: 11.5px; color: #34d399;" id="asvModalSubtitle">Mission: Ground-Truth Water Sampling at STN-001</p>
+                </div>
+            </div>
+
+            <div class="asv-mission-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="font-size: 10.5px; color: var(--text-dim); text-transform: uppercase;">Assigned Vehicle</span>
+                        <div style="font-size: 15px; font-weight: 700; color: #fff;">ORCA-WaveGlider ASV-04</div>
+                    </div>
+                    <span class="badge badge-normal" id="asvMissionStatus">EN ROUTE • ETA 32 MIN</span>
+                </div>
+
+                <div class="mission-timeline">
+                    <div class="timeline-checkpoint">
+                        <div class="checkpoint-dot active">✓</div>
+                        <div class="checkpoint-label active">Launch Base</div>
+                    </div>
+                    <div class="timeline-checkpoint">
+                        <div class="checkpoint-dot active">2</div>
+                        <div class="checkpoint-label active">Transit (4.2 kt)</div>
+                    </div>
+                    <div class="timeline-checkpoint">
+                        <div class="checkpoint-dot">3</div>
+                        <div class="checkpoint-label">Bottle Sample</div>
+                    </div>
+                    <div class="timeline-checkpoint">
+                        <div class="checkpoint-dot">4</div>
+                        <div class="checkpoint-label">Lab Telemetry</div>
+                    </div>
+                </div>
+
+                <div class="grid-3" style="margin-bottom: 0;">
+                    <div style="background: rgba(3,10,22,0.6); padding: 10px; border-radius: 6px;">
+                        <span style="font-size: 10.5px; color: var(--text-dim);">Solar Battery</span>
+                        <div style="font-size: 14px; font-weight: 700; color: #34d399;">89% Charged</div>
+                    </div>
+                    <div style="background: rgba(3,10,22,0.6); padding: 10px; border-radius: 6px;">
+                        <span style="font-size: 10.5px; color: var(--text-dim);">Telemetry Link</span>
+                        <div style="font-size: 14px; font-weight: 700; color: #00f2fe;">Iridium SBD</div>
+                    </div>
+                    <div style="background: rgba(3,10,22,0.6); padding: 10px; border-radius: 6px;">
+                        <span style="font-size: 10.5px; color: var(--text-dim);">Sample Bay</span>
+                        <div style="font-size: 14px; font-weight: 700; color: #fbbf24;">4/4 Ready</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 16px; font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+                <strong>Mission Directive:</strong> Automated mission dispatched following Recommendation from Agent 5 (Decision Support Agent). Vessel will collect 4x 500mL physical water samples at depth 1.5m and 5.0m to measure Total Suspended Solids (TSS) and petroleum hydrocarbons.
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('asvModal').classList.remove('active')">Close</button>
+                <button type="button" class="btn btn-primary" onclick="alert('Autonomous drone telemetry stream synced with Command Center.')">Sync ASV Telemetry</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/simulation.js') }}"></script>
+</body>
+</html>
+
