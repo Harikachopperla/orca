@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDemoButton();
     setupVerifyModal();
     setupSliders();
+    setupLiveStreamToggle();
     startLiveTelemetryTicker();
     setupAgentLiveTerminal();
     setupHydrophoneAudioAndVisualizer();
@@ -205,7 +206,38 @@ function populateStationSelectors() {
             updateStationCard(e.target.value);
         });
     });
+
+    // Populate comparison dropdowns
+    const compA = document.getElementById('compareStationA');
+    const compB = document.getElementById('compareStationB');
+    if (compA && compB && ORCA_STATE.stations.length > 0) {
+        compA.innerHTML = '';
+        compB.innerHTML = '';
+        ORCA_STATE.stations.forEach((stn, idx) => {
+            const optA = document.createElement('option');
+            optA.value = stn.id;
+            optA.innerText = `${stn.id} – ${stn.name.substring(0, 22)}...`;
+            if (idx === 0) optA.selected = true;
+            compA.appendChild(optA);
+
+            const optB = document.createElement('option');
+            optB.value = stn.id;
+            optB.innerText = `${stn.id} – ${stn.name.substring(0, 22)}...`;
+            if (idx === 1) optB.selected = true;
+            compB.appendChild(optB);
+        });
+
+        window.triggerStationComparison();
+    }
 }
+
+window.triggerStationComparison = function() {
+    const stnA = document.getElementById('compareStationA')?.value || 'STN-001';
+    const stnB = document.getElementById('compareStationB')?.value || 'STN-002';
+    if (window.renderComparisonChart) {
+        window.renderComparisonChart(stnA, stnB);
+    }
+};
 
 function updateStationCard(stationId) {
     const stn = ORCA_STATE.stations.find(s => s.id === stationId);
@@ -692,6 +724,20 @@ function setupDemoButton() {
 
     const triggerDemo = async () => {
         switchTab('ai-agents');
+
+        // Update slider values visually to match demonstration scenario
+        const elTemp = document.getElementById('simTemp');
+        const elTurb = document.getElementById('simTurb');
+        const elSal = document.getElementById('simSal');
+        const elDO = document.getElementById('simDO');
+        const elStn = document.getElementById('simStationSelect');
+
+        if (elTemp) { elTemp.value = 31.0; const s = document.getElementById('simTempVal'); if (s) s.innerText = '31.0'; }
+        if (elTurb) { elTurb.value = 18.0; const s = document.getElementById('simTurbVal'); if (s) s.innerText = '18.0'; }
+        if (elSal) { elSal.value = 35.0; const s = document.getElementById('simSalVal'); if (s) s.innerText = '35.0'; }
+        if (elDO) { elDO.value = 4.3; const s = document.getElementById('simDOVal'); if (s) s.innerText = '4.3'; }
+        if (elStn) { elStn.value = 'STN-001'; }
+
         if (window.runDemonstrationWorkflow) {
             window.runDemonstrationWorkflow();
         }
@@ -719,6 +765,50 @@ function setupDemoButton() {
         };
     }
 }
+
+function setupLiveStreamToggle() {
+    const badge = document.getElementById('liveStreamBadge');
+    if (!badge) return;
+    badge.style.cursor = 'pointer';
+    badge.onclick = () => {
+        if (liveTickerInterval) {
+            clearInterval(liveTickerInterval);
+            liveTickerInterval = null;
+            badge.classList.remove('stream-active');
+            const text = document.getElementById('liveStreamText');
+            if (text) {
+                text.innerText = 'STREAM: PAUSED (CLICK TO RESUME)';
+                text.style.color = '#94a3b8';
+            }
+        } else {
+            badge.classList.add('stream-active');
+            const text = document.getElementById('liveStreamText');
+            if (text) {
+                text.innerText = 'LIVE TELEMETRY: ACTIVE';
+                text.style.color = '#34d399';
+            }
+            startLiveTelemetryTicker();
+        }
+    };
+}
+
+window.syncAsvTelemetry = function() {
+    const status = document.getElementById('asvMissionStatus');
+    if (status) {
+        status.innerHTML = 'TRANSIT IN PROGRESS • SPEED 4.8 KT';
+        status.style.color = '#00f2fe';
+    }
+    const dots = document.querySelectorAll('#asvModal .checkpoint-dot');
+    const labels = document.querySelectorAll('#asvModal .checkpoint-label');
+    if (dots.length > 2) {
+        dots[2].classList.add('active');
+        dots[2].innerText = '3';
+    }
+    if (labels.length > 2) {
+        labels[2].classList.add('active');
+    }
+    alert('ORCA-WaveGlider ASV-04 telemetry synchronized successfully! Real-time TSS sensor link established.');
+};
 
 // 6. CSV Export Trigger
 function downloadReportCSV() {

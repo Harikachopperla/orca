@@ -167,7 +167,16 @@ function animateAgentPipeline(agentsList, finalVerdict) {
 
 window.toggleJsonInspector = function() {
     const el = document.getElementById('jsonInspectorBox');
+    const jsonOutput = document.getElementById('rawJsonPayload');
     if (!el) return;
-    el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+    const isShowing = (el.style.display === 'block');
+    el.style.display = isShowing ? 'none' : 'block';
+    if (!isShowing && jsonOutput) {
+        if (window.lastSimulationResult) {
+            jsonOutput.innerText = JSON.stringify(window.lastSimulationResult, null, 2);
+        } else {
+            jsonOutput.innerText = '// Multi-Agent Deliberation Pipeline Ready.\n// Click "Load Demo Scenario" or "Run Custom Telemetry" to inspect structured payloads.';
+        }
+    }
 };
 
